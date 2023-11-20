@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #result-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>URL Shortener</h1>
+
+<!-- Form for shortening URL -->
+<form id="shortenForm">
+    <label for="originalUrl">Original URL:</label>
+    <input type="text" id="originalUrl" name="originalUrl" placeholder="Enter the original URL" required>
+    <button type="button" onclick="shortenUrl()">Shorten URL</button>
+</form>
+
+<!-- Display the result of shortening if available -->
+<p id="shortenedUrlResult"></p>
+
+<!-- Form for resolving URL -->
+<form id="resolveForm">
+    <label for="shortenedUrl">Shortened URL:</label>
+    <input type="text" id="shortenedUrl" name="shortenedUrl" placeholder="Enter the shortened URL" required>
+    <button type="button" onclick="resolveUrl()">Resolve URL</button>
+</form>
+
+<!-- Display the result of resolving if available -->
+<p id="resolvedUrlResult"></p>
+
+<script>
+    function shortenUrl() {
+        var originalUrl = document.getElementById("originalUrl").value;
+
+        // Send JSON data to /url/shorten
+        fetch('/url/shorten', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ originalUrl }),
+        })
+        .then(response => response.text())
+        .then(data => {
+            var resultParagraph = document.getElementById("shortenedUrlResult");
+            resultParagraph.innerHTML = "Shortened URL: " + data;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function resolveUrl() {
+        var shortenedUrl = document.getElementById("shortenedUrl").value;
+
+        // Send GET request to /url/resolve
+        fetch('/url/resolve/' + encodeURIComponent(shortenedUrl), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            } else if (response.status === 302) {
+                // Handle the case where a redirect is happening
+                return "Redirecting to original URL: " + document.getElementById("originalUrl").value;
+            } else {
+                throw new Error('URL not found');
+            }
+        })
+        .then(data => {
+            // Display the result of the resolve
+            var resultParagraph = document.getElementById("resolvedUrlResult");
+            resultParagraph.innerHTML = data;
+        })
+        .catch(error => {
+            var resultParagraph = document.getElementById("resolvedUrlResult");
+            resultParagraph.innerHTML = "Error: " + error.message;
+        });
+    }
+</script>
+
+</body>
+</html>

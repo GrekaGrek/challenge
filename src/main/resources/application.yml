@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      authentication-database: admin
+      auto-index-creation: true
+      host: mongo_db
+      port: 27017
+      database: urls
